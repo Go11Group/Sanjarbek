@@ -1,0 +1,96 @@
+Last login: Tue May 21 16:13:07 on ttys000 macbookpro@MacBooks-Laptop ~ % cd desktop/GO/Lesson21 macbookpro@MacBooks-Laptop Lesson21 % git init
+Reinitialized existing Git repository in /Users/macbookpro/Desktop/GO/Lesson21/•git/ macbookpro@MacBooks-Laptop Lesson21 % git status
+On branch main
+nothing to commit, working tree clean macbookpro@MacBooks-Laptop Lesson21 % git checkout feature-1
+Switched to branch 'feature-1' macbookpro@MacBooks-Laptop Lesson21 % nano main.go macbookpro@MacBooks-Laptop Lesson21 % git checkout feature-2
+error: Your local changes to the following files would be overwritten by checkout:
+main.go
+Please commit your changes or stash them before you switch branches.
+Aborting
+macbookpro@MacBooks-Laptop Lesson21 % git checkout feature-1
+main.go
+Already on 'feature-1'
+macbookpro@MacBooks-Laptop Lesson21 % git add •
+macbookpro@MacBooks-Laptop Lesson21 % git commit -m "small change" [feature-1 ca29595] small change
+1 file changed, 6 insertions (+), 2 deletions (-) macbookpro@MacBooks-Laptop Lesson21 % git checkout feature-2
+Switched to branch 'feature-2' macbookpro@MacBooks-Laptop Lesson21 % nano main.go macbookpro@MacBooks-Laptop Lesson21 % git add
+macbookpro@MacBooks-Laptop Lesson21 % git commit -m "2nd small change" [feature-2 a6dce23] 2nd small change
+1 file changed, 1 insertion(+), 1 deletion (-) macbookpro@MacBooks-Laptop Lesson21 % merge feature-1 zsh: command not found: merge macbookpro@MacBooks-Laptop Lesson21 % git merge feature-1
+Auto-merging main.go
+CONFLICT (content): Merge conflict in main.go
+Automatic merge failed; fix conflicts and then commit the result. macbookpro@MacBooks-Laptop Lesson21 % git add • macbookpro@MacBooks-Laptop Lesson21 % git commit -m "fixed" [feature-2 8fbab37] fixed
+macbookpro@MacBooks-Laptop Lesson21 % git checkout main
+Switched to branch 'main'
+macbookpro@MacBooks-Laptop Lesson21 % git merge feature-1
+Auto-merging main.go
+CONFLICT (content): Merge conflict in main.go
+Automatic merge failed; fix conflicts and then commit the result. macbookpro@MacBooks-Laptop Lesson21 % git add •
+macbookpro@MacBooks-Laptop Lesson21 % git commit -m "fixed again"
+[macbookpro@MacBooks-Laptop Lesson21 % git branch -d feature-1
+error: branch 'feature-1' not found.
+macbookpro@MacBooks-Laptop Lesson21 % git branch -d feature-1
+error: branch 'feature-1' not found.
+macbookpro@MacBooks-Laptop Lesson21 % git branch -d feature-2 error: The branch 'feature-2' is not fully merged.
+If you are sure you want to delete it, run 'git branch -D feature-2'. macbookpro@MacBooks-Laptop Lesson21 % git branch
+feature-2
+* main
+new
+macbookpro@MacBooks-Laptop Lesson21 % git branch -d feature-2 error: The branch 'feature-2' is not fully merged.
+If you are sure you want to delete it, run 'git branch -D feature-2'. macbookpro@MacBooks-Laptop Lesson21 % git branch -d new Deleted branch new (was f2aee66).
+macbookpro@MacBooks-Laptop Lesson21 % git branch -d feature-2 error: The branch 'feature-2' is not fully merged.
+If you are sure you want to delete it, run 'git branch -D feature-2'.
+Imacbookpro@MacBooks-Laptop Lesson21 % git branch -D feature-2
+Deleted branch feature-2 (was 8fbab37). macbookpro@MacBooks-Laptop Lesson21
+
+
+
+macbookproMacBooks-Laptop Lesson21 % git branch feature-branch [macbookpro@MacBooks-Laptop Lesson21 % git checkout feature-branch
+Switched to branch 'feature-branch' imacbookpro@MacBooks-Laptop Lesson21 % nano main.go macbookpro@MacBooks-Laptop Lesson21 % git add • (macbookpro@MacBooks-Laptop Lesson21 % git commit -m "changed" [feature-branch e8706791 changed
+1 file changed, 2 insertions (+), 1 deletion (-) macbookpro@MacBooks-Laptop Lesson21 % git checkout main Switched to branch 'main'
+[macbookpro@MacBooks-Laptop Lesson21 % git merge feature-branch
+Updating 2d7a9d4.. e870679
+Fast-forward main.go | 3
+++-
+1 file changed, 2 insertions+), 1 deletion (-)
+(macbookpro@MacBooks-Laptop Lesson21 % git checkout feature-branch
+Switched to branch 'feature-branch' [macbookpro@MacBooks-Laptop Lesson21 % nano main.go [macbookpro@MacBooks-Laptop Lesson21 % git add
+[macbookpro@MacBooks-Laptop Lesson21 % git commit -m "Changed" [feature-branch f7feb34] Changed
+1 file changed, 3 insertions+), 2 deletions (-)
+[macbookpro@MacBooks-Laptop Lesson21 % git checkout main
+Switched to branch 'main'
+imacbookpro@MacBooks-Laptop Lesson21 % git merge feature-branch
+Updating e870679..f7feb34
+Fast-forward main.go | 5 +
+1 file changed, 3 insertions+), 2 deletions (-)
+[macbookpro@MacBooks-Laptop Lesson21 % git checkout feature-branch
+Switched to branch 'feature-branch' [macbookpro@MacBooks-Laptop Lesson21 % nano main.go imacbookpro@MacBooks-Laptop Lesson21 % git add • macbookpro@MacBooks-Laptop Lesson21 % git commit -m "Changed" [feature-branch 49f6f25] Changed
+1 file changed, 4 insertions (+)
+[macbookpro@MacBooks-Laptop Lesson21 % git checkout main
+Switched to branch 'main'
+[macbookpro@MacBooks-Laptop Lesson21 % git merge feature-branch
+Updating f7feb34. .49f6f25
+Fast-forward
+main.go | 4 ++++
+1 file changed, 4 insertions (+)
+macbookpro@MacBooks-Laptop Lesson21 % nano main.go [macbookpro@MacBooks-Laptop Lesson21 % git checkout feature-branch
+M
+main. go
+Switched to branch 'feature-branch' [macbookpro@MacBooks-Laptop Lesson21 % nano main.go [macbookpro@MacBooks-Laptop Lesson21 % git add •
+[feature-branch 49f6f25] Changed
+1 file changed, 4 insertions (+)
+macbookproMacBooks-Laptop Lesson21 % git checkout main Switched to branch 'main'
+macbookpro@MacBooks-Laptop Lesson21 % git merge feature-branch
+Updating f7feb34.. 49f6f25
+Fast-forward
+main.go | 4 ++++
+1 file changed, 4 insertions (+)
+macbookpro@MacBooks-Laptop Lesson21 % nano main.go macbookpro@MacBooks-Laptop Lesson21 % git checkout feature-branch
+M
+main. go
+Switched to branch 'feature-branch' macbookpro@MacBooks-Laptop Lesson21 % nano main.go [macbookpro@MacBooks-Laptop Lesson21 % git add . macbookpro@MacBooks-Laptop Lesson21 % git commit -m "Changed"
+[feature-branch f010416] Changed
+1 file changed, 1 insertion(+), 1 deletion (-) macbookpro@MacBooks-Laptop Lesson21 % git checkout main Switched to branch 'main' macbookpro®MacBooks-Laptop Lesson21 % git status On branch main
+nothing to commit, working tree clean macbookpro@MacBooks-Laptop Lesson21 % git merge feature-branch
+Updating 49f6f25..f010416
+Fast-forward main.go | 2 +-
+1 file changed, 1 insertion(+), 1 deletion (-)
