@@ -37,8 +37,6 @@ SELECT * FROM students ORDER BY stipend DESC;
 -- JOIN iborasi ikki yoki undan ortiq jadvallar qatorlarini ular orasidagi tegishli ustun asosida birlashtiradi.
 -- Bu relyatsion malumotlar bazalari uchun juda muhim bolib, turli jadvallarda saqlanadigan tegishli malumotlarni birlashtirishga imkon beradi.
 
-INNER JOIN courses ON students.course = courses.course_id;
-
 SELECT students.name, students.stipend, courses.course_name FROM students INNER JOIN courses ON students.course = courses.course_id;
 
 -- bu yerda inner join ishlatilyapti va students table bilan courses tableni boglayapti
