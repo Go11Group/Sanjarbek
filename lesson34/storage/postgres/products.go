@@ -13,6 +13,7 @@ func NewProductRepo(db *sql.DB) *ProductsRepo {
 	return &ProductsRepo{Db: db}
 }
 
+
 func (p *ProductsRepo) CreateProduct(product model.Products) error {
 	tr, err := p.Db.Begin()
 	if err != nil {

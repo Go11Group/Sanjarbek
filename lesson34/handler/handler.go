@@ -10,15 +10,30 @@ type Handler struct {
 	Book *postgres.BookRepo
 }
 
-
-func NewHandler(handler Handler) *http.Server {
-	mux := http.NewServeMux()
-
-	mux.HandleFunc("/book/", handler.book)
-
-	return &http.Server{Handler: mux}
+type Users struct {
+	User *postgres.UsersRepo
 }
 
-type Book struct {
-	Name, Author, Publisher string
+type Products struct {
+	Product *postgres.ProductsRepo
 }
+
+func NewHandler(users *postgres.UsersRepo, products *postgres.ProductsRepo) *http.ServeMux {
+    mux := http.NewServeMux()
+
+    userHandler := Users{User: users}
+    productHandler := Products{Product: products}
+
+    mux.HandleFunc("/CreateUsers/", userHandler.UserCreate)
+    mux.HandleFunc("/ReadUsers/", userHandler.UserRead)
+    mux.HandleFunc("/UpdateUsers/", userHandler.UserUpdate)
+    mux.HandleFunc("/DeleteUsers/", userHandler.UserDelete)
+
+    mux.HandleFunc("/CreateProducts/", productHandler.ProductCreate)
+    mux.HandleFunc("/ReadProducts/", productHandler.ProductRead)
+    mux.HandleFunc("/UpdateProducts/", productHandler.ProductUpdate)
+    mux.HandleFunc("/DeleteProducts/", productHandler.ProductDelete)
+
+    return mux
+}
+
