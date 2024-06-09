@@ -16,7 +16,7 @@ func NewProblemRepo(db *sql.DB) *ProblemRepo {
 
 func (p *ProblemRepo) Create(problem model.Problems) (*model.Problems, error) {
 	_, err := p.db.Exec(`
-		INSERT into problem(
+		INSERT into problems(
 			id, name, difficulty, explanation) VALUES($1, $2, $3, $4)
 			`, problem.Id, problem.Name, problem.Difficulty, problem.Explanation)
 

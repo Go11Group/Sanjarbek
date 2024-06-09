@@ -3,9 +3,8 @@ package postgres
 import (
 	"database/sql"
 	"errors"
+	"fmt"
 	"module/model"
-
-	"github.com/google/uuid"
 )
 
 type UserRepo struct {
@@ -17,38 +16,35 @@ func NewUserRepo(db *sql.DB) *UserRepo {
 }
 
 func (u *UserRepo) Create(user model.User) (*model.User, error) {
-	user.Id = uuid.NewString()
+	query := `
+		INSERT INTO users(
+			id,
+			first_name,
+			last_name,
+			field,
+			email)
+		VALUES($1, $2, $3, $4, $5)`
 
-	_, err := u.db.Exec(`\
-		INSERT INTO user(
-		id,
-		first_name,
-		lasr_name,
-		field,
-		email)
-		VALUES($1, $2, $3, $4, $5)`, user.Id, user.FirstName, user.LastName, user.Field, user.Email)
-
+	_, err := u.db.Exec(query, user.Id, user.FirstName, user.LastName, user.Field, user.Email)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("could not create user: %v", err)
 	}
 
-	return &user, err
+	return &user, nil
 }
 
-func (u *UserRepo) GetById(id string) (model.User, error) {
-	user := model.User{}
-	err := u.db.QueryRow(`
-	SELECT * FROM user WHERE id = $1`, id).Scan(&user.Id, &user.FirstName, &user.LastName, &user.Field, &user.Email)
+func (u *UserRepo) GetUserByID(id int) (model.User, error) {
+	var user model.User
 
-	if err != nil {
-		return user, err
-	}
+	err := u.db.QueryRow(`
+		SELECT id, first_name, last_name, field, email FROM users WHERE id = $1
+	`, id).Scan(&user.Id, &user.FirstName, &user.LastName, &user.Field, &user.Email)
 
 	return user, err
 }
 
 func (u *UserRepo) GetAll() (*[]model.User, error) {
-	query := `SELECT * FROM problem`
+	query := `SELECT id, first_name, last_name, field, email FROM users`
 
 	rows, err := u.db.Query(query)
 	if err != nil {
@@ -59,13 +55,16 @@ func (u *UserRepo) GetAll() (*[]model.User, error) {
 
 	for rows.Next() {
 		user := model.User{}
-		rows.Scan(
+		err := rows.Scan(
 			&user.Id,
 			&user.FirstName,
 			&user.LastName,
 			&user.Field,
 			&user.Email,
 		)
+		if err != nil {
+			return nil, err
+		}
 		users = append(users, user)
 	}
 
@@ -79,11 +78,11 @@ func (u *UserRepo) GetAll() (*[]model.User, error) {
 
 func (u *UserRepo) Update(user model.User) (*model.User, error) {
 	res, err := u.db.Exec(`
-		UPDATE problem SET
-		SET
-			name = $2,
-			difficulty = $3,
-			explanation = $4
+		UPDATE users SET
+			first_name = $2,
+			last_name = $3,
+			field = $4,
+			email = $5
 		WHERE id = $1`, user.Id, user.FirstName, user.LastName, user.Field, user.Email)
 	
 	if err != nil {
@@ -102,9 +101,9 @@ func (u *UserRepo) Update(user model.User) (*model.User, error) {
 	return &user, err
 }
 
-func (u *UserRepo) Delete(id string) error {
+func (u *UserRepo) Delete(id int) error {
 	_, err := u.db.Exec(`
-	DELETE FROM problems WHERE id = $1`, id)
+	DELETE FROM users WHERE id = $1`, id)
 	
 	return err
 }

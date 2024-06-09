@@ -15,23 +15,23 @@ func NewSolvedProblemRepo(db *sql.DB) *SolvedProblemRepo {
 }
 
 func (p *SolvedProblemRepo) Create(solvedProblem model.SolvedProblems) (*model.SolvedProblems, error) {
-	_, err := p.db.Exec(`solvedProblem
-		INSERT into problem(
-			id, user_id, name, difficulty, explanation) VALUES($1, $2, $3, $4, $5)
-			`, solvedProblem.Id, solvedProblem.UserId, solvedProblem.Name, solvedProblem.Difficulty, solvedProblem.Explanation)
+	_, err := p.db.Exec(`
+		INSERT INTO solved_problems (id, user_id, name, difficulty, explanation) 
+		VALUES ($1, $2, $3, $4, $5)`,
+		solvedProblem.Id, solvedProblem.UserId, solvedProblem.Name, solvedProblem.Difficulty, solvedProblem.Explanation)
 
-		
 	if err != nil {
 		return nil, err
 	}
 
-	return &solvedProblem, err
+	return &solvedProblem, nil
 }
+
 
 func (p *SolvedProblemRepo) GetById(id int) (*model.SolvedProblems, error) {
 	solvedProblem := model.SolvedProblems{}
 	err := p.db.QueryRow(`
-		SELECT * from problem WHERE id = $1
+		SELECT * from solved_problems WHERE id = $1
 		`, id).Scan(&solvedProblem.Id, &solvedProblem.UserId, &solvedProblem.Name, &solvedProblem.Difficulty, &solvedProblem.Explanation)
 
 	if err != nil {
@@ -42,7 +42,7 @@ func (p *SolvedProblemRepo) GetById(id int) (*model.SolvedProblems, error) {
 }
 
 func (p *SolvedProblemRepo) GetAll() (*[]model.SolvedProblems, error) {
-	query := `SELECT * FROM problem`
+	query := `SELECT * FROM solved_problems`
 
 	rows, err := p.db.Query(query)
 	if err != nil {
@@ -73,7 +73,7 @@ func (p *SolvedProblemRepo) GetAll() (*[]model.SolvedProblems, error) {
 
 func (p *SolvedProblemRepo) Update(solvedProblem model.SolvedProblems) (*model.SolvedProblems, error) {
 	res, err := p.db.Exec(`
-		UPDATE problem SET
+		UPDATE solved_problems SET
 		SET
 			user_id = $2.
 			name = $3,
@@ -99,7 +99,7 @@ func (p *SolvedProblemRepo) Update(solvedProblem model.SolvedProblems) (*model.S
 
 func (p *SolvedProblemRepo) Delete(id int) error {
 	_, err := p.db.Exec(`
-	DELETE FROM problems WHERE id = $1`, id)
+	DELETE FROM solved_problems WHERE id = $1`, id)
 	
 	return err
 }

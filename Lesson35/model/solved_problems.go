@@ -2,7 +2,7 @@ package model
 
 type SolvedProblems struct {
 	Id          int
-	UserId      string
+	UserId      int
 	Name        string
 	Difficulty  string
 	Explanation string

@@ -14,10 +14,10 @@ func main() {
 	defer db.Close()
 
 	u := postgres.NewUserRepo(db)
-	// p := postgres.NewProblemRepo(db)
-	// sp := postgres.NewSolvedProblemRepo(db)      , Problem: p, SolvedProblem: sp
+	p := postgres.NewProblemRepo(db)
+	sp := postgres.NewSolvedProblemRepo(db)
 
-	server := handler.NewHandler(handler.Handler{User: u})
+	server := handler.NewHandler(handler.Handler{User: u, Problem: p, SolvedProblem: sp})
 
 	err = server.ListenAndServe()
 	if err != nil {
