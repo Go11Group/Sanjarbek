@@ -8,20 +8,23 @@ import (
 )
 
 type Handler struct {
-	User *postgres.UserRepo
-	Problem *postgres.ProblemRepo
+	User          *postgres.UserRepo
+	Problem       *postgres.ProblemRepo
 	SolvedProblem *postgres.SolvedProblemRepo
 }
 
 func NewHandler(handler Handler) *http.Server {
 	mux := mux.NewRouter()
 
-	mux.HandleFunc("/createUser", handler.CreateUser).Methods("POST")
-	mux.HandleFunc("/users/{id}", handler.GetUser).Methods("GET")
-	mux.HandleFunc("/users", handler.GetAllUser).Methods("GET")
-	mux.HandleFunc("/updateUser/{id}", handler.UpdateUser).Methods("PUT")
-	mux.HandleFunc("/deleteUser/{id}", handler.DeleteUser).Methods("DELETE")
+	user := mux.PathPrefix("/users").Subrouter()
+	// TODO fdsfdsgfdhgcv
 
+	user.HandleFunc("/create", handler.CreateUser).Methods("POST")
+	user.HandleFunc("/get/", handler.GetUser).Methods("GET")
+	user.HandleFunc("/get/{id}", handler.GetUserId).Methods("GET")
+	user.HandleFunc("/getall", handler.GetAllUser).Methods("GET")
+	user.HandleFunc("/update/{id}", handler.UpdateUser).Methods("PUT")
+	user.HandleFunc("/delete/{id}", handler.DeleteUser).Methods("DELETE")
 
 	mux.HandleFunc("/createProblem", handler.CreateProblem).Methods("POST")
 	mux.HandleFunc("/problem/{id}", handler.GetProblem).Methods("GET")
@@ -34,7 +37,6 @@ func NewHandler(handler Handler) *http.Server {
 	mux.HandleFunc("/SolvedProblems/", handler.GetAllSolvedProblems).Methods("GET")
 	mux.HandleFunc("/updateSolvedProblem/{id}", handler.UpdateSolvedProblem).Methods("PUT")
 	mux.HandleFunc("/deleteSolvedProblem/{id}", handler.DeleteSolvedProblem).Methods("DELETE")
-
 
 	return &http.Server{Addr: ":8080", Handler: mux}
 }

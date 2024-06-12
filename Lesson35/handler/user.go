@@ -29,8 +29,28 @@ func (h *Handler) CreateUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) GetUser(w http.ResponseWriter, r *http.Request) {
+	userID := r.URL.Query().Get("id")
+
+	ID, err := strconv.Atoi(userID)
+	if err != nil {
+		http.Error(w, fmt.Sprintf(`{"error": "User not found: %s"}`, userID), http.StatusNotFound)
+		return
+	}
+
+	user, err := h.User.GetUserByID(ID)
+	if err != nil {
+		http.Error(w, fmt.Sprintf(`{"error": "User not found: %s"}`, userID), http.StatusNotFound)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(user)
+}
+
+func (h *Handler) GetUserId(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	userID, err := strconv.Atoi(params["id"])
+
 	if err != nil {
 		http.Error(w, fmt.Sprintf(`{"error": "Invalid user ID: %s"}`, params["id"]), http.StatusBadRequest)
 		return

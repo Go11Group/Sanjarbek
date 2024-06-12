@@ -37,7 +37,7 @@ func (u *UserRepo) GetUserByID(id int) (model.User, error) {
 	var user model.User
 
 	err := u.db.QueryRow(`
-		SELECT id, first_name, last_name, field, email FROM users WHERE id = $1
+		SELECT id, first_name, last_name, field, email vFROM users WHERE id = $1
 	`, id).Scan(&user.Id, &user.FirstName, &user.LastName, &user.Field, &user.Email)
 
 	return user, err
