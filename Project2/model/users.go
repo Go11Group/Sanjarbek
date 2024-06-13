@@ -8,5 +8,11 @@ type Users struct {
 	Password  string
 	CreatedAt string
 	UpdatedAt string
-	DeletedAt string
+}
+
+type UserGetAll struct{
+	Name string
+	Birthday string
+	Offset int
+	Limit int
 }

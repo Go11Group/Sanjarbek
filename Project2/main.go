@@ -17,7 +17,7 @@ func main() {
 
 	userRepo := postgres.NewUserRepo(db)
 
-	h := handler.NewHandler(userRepo)
+	h := handler.NewHandler(*userRepo)
 
 	r := gin.Default()
 	h.RegisterRoutes(r)

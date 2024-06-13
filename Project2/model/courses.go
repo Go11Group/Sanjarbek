@@ -1,10 +1,15 @@
 package model
 
 type Courses struct {
-	CourseId    string
+	CourseId    string `json:"course_id"`
 	Title       string
 	Description string
 	CreatedAt   string
-	UpdatedAt   string
-	DeletedAt   string
+}
+
+type CourseGetAll struct {
+	Title string
+	Description string
+	Offset int
+	Limit int
 }

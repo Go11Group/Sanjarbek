@@ -8,17 +8,15 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-
-
-func (h *Handler) CreateUser(c *gin.Context) {
-	var user model.Users
+func (h *Handler) CreateEnrollment(c *gin.Context) {
+	var enrollment model.Enrollments
 	
-	if err := c.ShouldBindJSON(&user); err != nil {
+	if err := c.ShouldBindJSON(&enrollment); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("Invalid input: %v", err)})
 		return
 	}
 
-	resp, err := h.User.Create(user)
+	resp, err := h.Enrollment.CreateEnrollment(enrollment)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("Could not create user: %v", err)})
 		return
@@ -27,49 +25,36 @@ func (h *Handler) CreateUser(c *gin.Context) {
 	c.JSON(http.StatusCreated, resp)
 }
 
+func (h *Handler) GetEnrollmentId(c *gin.Context) {
+	enrollmentID := c.Param("id")
 
-func (h *Handler) GetUser(c *gin.Context) {
-	userID := c.Query("id")
-
-	user, err := h.User.GetUserByID(userID)
+	enrollment, err := h.Enrollment.GetEnrollmentByID(enrollmentID)
 	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": fmt.Sprintf("User not found: %s", userID)})
+		c.JSON(http.StatusNotFound, gin.H{"error": fmt.Sprintf("User not found: %s", enrollmentID)})
 		return
 	}
 
-	c.JSON(http.StatusOK, user)
+	c.JSON(http.StatusOK, enrollment)
 }
 
-func (h *Handler) GetUserId(c *gin.Context) {
-	userID := c.Param("id")
-
-	user, err := h.User.GetUserByID(userID)
-	if err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": fmt.Sprintf("User not found: %s", userID)})
-		return
-	}
-
-	c.JSON(http.StatusOK, user)
-}
-
-func (h *Handler) GetAllUsers(c *gin.Context) {
-	users, err := h.User.GetAll()
+func (h *Handler) GetAllEnrollments(c *gin.Context) {
+	enrollments, err := h.Enrollment.GetAllEnrollments()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("Internal server error: %v", err)})
 		return
 	}
 
-	c.JSON(http.StatusOK, users)
+	c.JSON(http.StatusOK, enrollments)
 }
 
-func (h *Handler) UpdateUser(c *gin.Context) {
-	var user model.Users
-	if err := c.ShouldBindJSON(&user); err != nil {
+func (h *Handler) UpdateEnrollment(c *gin.Context) {
+	var enrollment model.Enrollments
+	if err := c.ShouldBindJSON(&enrollment); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": fmt.Sprintf("Invalid input: %v", err)})
 		return
 	}
 
-	resp, err := h.User.Update(user)
+	resp, err := h.Enrollment.UpdateEnrollment(enrollment)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("Could not update user: %v", err)})
 		return
@@ -78,10 +63,10 @@ func (h *Handler) UpdateUser(c *gin.Context) {
 	c.JSON(http.StatusOK, resp)
 }
 
-func (h *Handler) DeleteUser(c *gin.Context) {
-	userID := c.Param("id")
+func (h *Handler) DeleteEnrollment(c *gin.Context) {
+	enrollmentID := c.Param("id")
 
-	err := h.User.Delete(userID)
+	err := h.Enrollment.DeleteEnrollment(enrollmentID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("Could not delete user: %v", err)})
 		return
