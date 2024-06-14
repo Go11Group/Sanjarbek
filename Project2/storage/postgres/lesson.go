@@ -4,8 +4,12 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"log"
 	"module/model"
 	"module/replace"
+	"strings"
+
+	"github.com/google/uuid"
 )
 
 type LessonRepo struct {
@@ -19,8 +23,13 @@ func NewLessonRepo(db *sql.DB) *LessonRepo {
 func (u *LessonRepo) CreateLesson(lesson model.Lessons) (*model.Lessons, error) {
 	tr, err := u.db.Begin()
 	if err != nil {
+		log.Printf("Error starting transaction: %v", err)
 		return nil, err
 	}
+
+	// lesson Id yaratadi
+	id := uuid.NewString()
+	lesson.LessonId = id
 
 	query := `
 		INSERT INTO lessons(
@@ -30,14 +39,16 @@ func (u *LessonRepo) CreateLesson(lesson model.Lessons) (*model.Lessons, error) 
 			content)
 		VALUES($1, $2, $3, $4)`
 
-	_, err = tr.Exec(query, lesson.LessonId, lesson.CourseId, lesson.Title, lesson.Content)
+	_, err = tr.Exec(query, id, lesson.CourseId, lesson.Title, lesson.Content)
 	if err != nil {
 		tr.Rollback()
+		log.Printf("Could not create lesson: %v", err)
 		return nil, fmt.Errorf("could not create lesson: %v", err)
 	}
 
 	err = tr.Commit()
 	if err != nil {
+		log.Printf("Error committing transaction: %v", err)
 		return nil, err
 	}
 
@@ -59,36 +70,12 @@ func (u *LessonRepo) GetLessonByID(id string) (*model.Lessons, error) {
 	return &lesson, nil
 }
 
-func (u *LessonRepo) GetAllLessons() (*[]model.Lessons, error) {
-	query := `SELECT lesson_id, course_id, title, content 
-	          FROM lessons 
-	          WHERE deleted_at = 0`
-
-	rows, err := u.db.Query(query)
+func (u *LessonRepo) GetAllLessons(f model.LessonGetAll) ([]model.Lessons, error) {
+	tr, err := u.db.Begin()
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
 
-	var lessons []model.Lessons
-
-	for rows.Next() {
-		lesson := model.Lessons{}
-		err := rows.Scan(&lesson.LessonId, &lesson.CourseId, &lesson.Title, &lesson.Content)
-		if err != nil {
-			return nil, err
-		}
-		lessons = append(lessons, lesson)
-	}
-
-	if err = rows.Err(); err != nil {
-		return nil, err
-	}
-
-	return &lessons, nil
-}
-
-func (u *LessonRepo) GetAllLessonsFiltered(f model.LessonGetAll) ([]model.Lessons, error) {
 	var (
 		params = make(map[string]interface{})
 		arr    []interface{}
@@ -124,6 +111,7 @@ func (u *LessonRepo) GetAllLessonsFiltered(f model.LessonGetAll) ([]model.Lesson
 	query, arr = replace.ReplaceQueryParams(query, params)
 	rows, err := u.db.Query(query, arr...)
 	if err != nil {
+		tr.Rollback()
 		return nil, err
 	}
 	defer rows.Close()
@@ -133,49 +121,75 @@ func (u *LessonRepo) GetAllLessonsFiltered(f model.LessonGetAll) ([]model.Lesson
 		var lesson model.Lessons
 		err := rows.Scan(&lesson.LessonId, &lesson.CourseId, &lesson.Title, &lesson.Content)
 		if err != nil {
+			tr.Rollback()
 			return nil, err
 		}
 		lessons = append(lessons, lesson)
 	}
 
 	if err = rows.Err(); err != nil {
+		tr.Rollback()
+		return nil, err
+	}
+
+	err = tr.Commit()
+	if err != nil {
 		return nil, err
 	}
 
 	return lessons, nil
 }
 
-func (u *LessonRepo) UpdateLesson(lesson model.Lessons) (*model.Lessons, error) {
-	tr, err := u.db.Begin()
-	if err != nil {
-		return nil, err
-	}
-	defer tr.Commit()
+func (u *LessonRepo) UpdateLesson(lesson model.LessonsUpdate) (*model.LessonsUpdate, error) {
+    // Begin a transaction
+    tr, err := u.db.Begin()
+    if err != nil {
+        return nil, err
+    }
+    defer tr.Commit() // Commit the transaction at the end
 
-	res, err := tr.Exec(`
-		UPDATE lessons SET
-			course_id = $2,
-			title = $3,
-			content = $4
-		WHERE lesson_id = $1 AND deleted_at = 0`, lesson.LessonId, lesson.CourseId, lesson.Title, lesson.Content)
+    // Prepare the query and arguments
+    var args []interface{}
+    argID := 1
+    var fields []string
 
-	if err != nil {
-		tr.Rollback()
-		return nil, err
-	}
+    // Check if Title needs to be updated
+    if lesson.Title != "" {
+        fields = append(fields, fmt.Sprintf("title = $%d", argID))
+        args = append(args, lesson.Title)
+        argID++
+    }
 
-	n, err := res.RowsAffected()
-	if err != nil {
-		tr.Rollback()
-		return nil, err
-	}
+    // Check if Content needs to be updated
+    if lesson.Content != "" {
+        fields = append(fields, fmt.Sprintf("content = $%d", argID))
+        args = append(args, lesson.Content)
+        argID++
+    }
 
-	if n == 0 {
-		tr.Rollback()
-		return nil, errors.New("this id is not available")
-	}
+    // Check if there are any fields to update
+    if len(fields) == 0 {
+        return nil, errors.New("nothing to update")
+    }
 
-	return &lesson, nil
+    args = append(args, lesson.LessonId) // Assuming LessonId is already set
+
+    query := fmt.Sprintf(`
+        UPDATE lessons SET
+            %s,
+            updated_at = CURRENT_TIMESTAMP
+        WHERE lesson_id = $%d AND deleted_at = 0`,
+        strings.Join(fields, ", "),
+        argID)
+
+    _, err = tr.Exec(query, args...)
+    if err != nil {
+        tr.Rollback()
+        return nil, err
+    }
+
+    // Return the updated lesson
+    return &lesson, nil
 }
 
 func (u *LessonRepo) DeleteLesson(id string) error {
@@ -200,4 +214,34 @@ func (u *LessonRepo) DeleteLesson(id string) error {
 	}
 
 	return nil
+}
+
+func (u *LessonRepo) GetLessonsByCourseID(courseID string) ([]model.Lessons, error) {
+	query := `
+		SELECT lesson_id, title, content
+		FROM lessons
+		WHERE course_id = $1 AND deleted_at = 0`
+
+	rows, err := u.db.Query(query, courseID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var lessons []model.Lessons
+
+	for rows.Next() {
+		var lesson model.Lessons
+		err := rows.Scan(&lesson.LessonId, &lesson.Title, &lesson.Content)
+		if err != nil {
+			return nil, err
+		}
+		lessons = append(lessons, lesson)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return lessons, nil
 }

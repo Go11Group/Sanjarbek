@@ -10,7 +10,7 @@ const (
     host     = "localhost"
     port     = 5432
     user     = "macbookpro"
-    dbname   = "project2"
+    dbname   = "examine"
     password = "1111"
 )
 

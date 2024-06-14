@@ -2,10 +2,13 @@ package postgres
 
 import (
 	"database/sql"
-	"errors"
 	"fmt"
 	"module/model"
 	"module/replace"
+	"strings"
+	"time"
+
+	"github.com/google/uuid"
 )
 
 type EnrollmentRepo struct {
@@ -21,16 +24,16 @@ func (u *EnrollmentRepo) CreateEnrollment(enrollment model.Enrollments) (*model.
 	if err != nil {
 		return nil, err
 	}
-
+	id := uuid.NewString()
+	enrollment.EnrollmentId = id
 	query := `
 		INSERT INTO enrollments(
 			enrollment_id,
 			user_id,
-			course_id,
-			enrollment_date)
-		VALUES($1, $2, $3, $4)`
+			course_id)
+		VALUES($1, $2, $3)`
 
-	_, err = tr.Exec(query, enrollment.EnrollmentId, enrollment.UserId, enrollment.CourseId, enrollment.EnrollmentDate)
+	_, err = tr.Exec(query, enrollment.EnrollmentId, enrollment.UserId, enrollment.CourseId)
 	if err != nil {
 		tr.Rollback()
 		return nil, fmt.Errorf("could not create enrollment: %v", err)
@@ -48,9 +51,9 @@ func (u *EnrollmentRepo) GetEnrollmentByID(id string) (*model.Enrollments, error
 	var enrollment model.Enrollments
 
 	err := u.db.QueryRow(`
-		SELECT enrollment_id, user_id, course_id, enrollment_date 
+		SELECT enrollment_id, user_id, course_id
 		FROM enrollments 
-		WHERE enrollment_id = $1 AND deleted_at = 0`, id).Scan(&enrollment.EnrollmentId, &enrollment.UserId, &enrollment.CourseId, &enrollment.EnrollmentDate)
+		WHERE enrollment_id = $1 AND deleted_at = 0`, id).Scan(&enrollment.EnrollmentId, &enrollment.UserId, &enrollment.CourseId)
 
 	if err != nil {
 		return nil, err
@@ -59,8 +62,8 @@ func (u *EnrollmentRepo) GetEnrollmentByID(id string) (*model.Enrollments, error
 	return &enrollment, nil
 }
 
-func (u *EnrollmentRepo) GetAllEnrollments() (*[]model.Enrollments, error) {
-	query := `SELECT enrollment_id, user_id, course_id, enrollment_date 
+func (u *EnrollmentRepo) GetAllEnrollments() ([]model.Enrollments, error) {
+	query := `SELECT enrollment_id, user_id, course_id
 	          FROM enrollments 
 	          WHERE deleted_at = 0`
 
@@ -74,7 +77,7 @@ func (u *EnrollmentRepo) GetAllEnrollments() (*[]model.Enrollments, error) {
 
 	for rows.Next() {
 		enrollment := model.Enrollments{}
-		err := rows.Scan(&enrollment.EnrollmentId, &enrollment.UserId, &enrollment.CourseId, &enrollment.EnrollmentDate)
+		err := rows.Scan(&enrollment.EnrollmentId, &enrollment.UserId, &enrollment.CourseId)
 		if err != nil {
 			return nil, err
 		}
@@ -85,7 +88,7 @@ func (u *EnrollmentRepo) GetAllEnrollments() (*[]model.Enrollments, error) {
 		return nil, err
 	}
 
-	return &enrollments, nil
+	return enrollments, nil
 }
 
 func (u *EnrollmentRepo) GetAllEnrollmentsFiltered(f model.EnrollmentGetAll) ([]model.Enrollments, error) {
@@ -95,7 +98,7 @@ func (u *EnrollmentRepo) GetAllEnrollmentsFiltered(f model.EnrollmentGetAll) ([]
 		filter string
 	)
 
-	query := `SELECT enrollment_id, user_id, course_id, enrollment_date 
+	query := `SELECT enrollment_id, user_id, course_id
 	          FROM enrollments 
 	          WHERE deleted_at = 0 `
 
@@ -107,11 +110,6 @@ func (u *EnrollmentRepo) GetAllEnrollmentsFiltered(f model.EnrollmentGetAll) ([]
 	if f.CourseId != "" {
 		params["course_id"] = f.CourseId
 		filter += " AND course_id = :course_id "
-	}
-
-	if f.EnrollmentDate != "" {
-		params["enrollment_date"] = f.EnrollmentDate
-		filter += " AND enrollment_date = :enrollment_date "
 	}
 
 	if f.Offset > 0 {
@@ -136,7 +134,7 @@ func (u *EnrollmentRepo) GetAllEnrollmentsFiltered(f model.EnrollmentGetAll) ([]
 	var enrollments []model.Enrollments
 	for rows.Next() {
 		var enrollment model.Enrollments
-		err := rows.Scan(&enrollment.EnrollmentId, &enrollment.UserId, &enrollment.CourseId, &enrollment.EnrollmentDate)
+		err := rows.Scan(&enrollment.EnrollmentId, &enrollment.UserId, &enrollment.CourseId)
 		if err != nil {
 			return nil, err
 		}
@@ -149,38 +147,58 @@ func (u *EnrollmentRepo) GetAllEnrollmentsFiltered(f model.EnrollmentGetAll) ([]
 
 	return enrollments, nil
 }
+func (u *EnrollmentRepo) EmrolUpdate(enrolUpdateFilter model.EnrollmentsUpdate) error {
+	var params []string
+	var args []interface{}
+	query := `
+	SELECT id
+	FROM ENROLLMENTS
+	WHERE delete_at IS NULL AND id = $1
+	`
 
-func (u *EnrollmentRepo) UpdateEnrollment(enrollment model.Enrollments) (*model.Enrollments, error) {
-	tr, err := u.db.Begin()
+	if err := u.db.QueryRow(query, enrolUpdateFilter.EnrolmentId).Err(); err != nil {
+		return fmt.Errorf("enrollments by this id not found: %v", err)
+	}
+
+	query = `
+	UPDATE enrollments SET 
+	`
+
+	if enrolUpdateFilter.UserId != nil {
+		params = append(params, fmt.Sprintf(" USER_ID = $%d ", len(args)+1))
+		args = append(args, *enrolUpdateFilter.UserId)
+	}
+
+	if enrolUpdateFilter.CourseId != nil {
+		params = append(params, fmt.Sprintf(" course_id = $%d ", len(args)+1))
+		args = append(args, *enrolUpdateFilter.CourseId)
+	}
+
+	if enrolUpdateFilter.EnrollmentDate != nil {
+		params = append(params, fmt.Sprintf("enrollment_date = $%d", len(args)+1))
+		args = append(args, *enrolUpdateFilter.EnrollmentDate)
+	}
+
+	params = append(params, fmt.Sprintf("update_at = $%d", len(args)+1))
+	args = append(args, time.Now())
+
+	if len(params) == 0 {
+		return fmt.Errorf("no fields to update")
+	}
+
+	args = append(args, enrolUpdateFilter.EnrolmentId)
+	query += strings.Join(params, ", ") + fmt.Sprintf(" WHERE id = $%d AND delete_at IS NULL", len(args))
+
+	fmt.Println("Executing query:", query)
+	fmt.Println("With arguments:", args)
+	_, err := u.db.Exec(query, args...)
+
 	if err != nil {
-		return nil, err
-	}
-	defer tr.Commit()
-
-	res, err := tr.Exec(`
-		UPDATE enrollments SET
-			user_id = $2,
-			course_id = $3,
-			enrollment_date = $4
-		WHERE enrollment_id = $1 AND deleted_at = 0`, enrollment.EnrollmentId, enrollment.UserId, enrollment.CourseId, enrollment.EnrollmentDate)
-
-	if err != nil {
-		tr.Rollback()
-		return nil, err
+		return fmt.Errorf("failed executing query: %v", err)
 	}
 
-	n, err := res.RowsAffected()
-	if err != nil {
-		tr.Rollback()
-		return nil, err
-	}
-
-	if n == 0 {
-		tr.Rollback()
-		return nil, errors.New("this id is not available")
-	}
-
-	return &enrollment, nil
+	fmt.Println(query)
+	return nil
 }
 
 func (u *EnrollmentRepo) DeleteEnrollment(id string) error {
@@ -205,4 +223,35 @@ func (u *EnrollmentRepo) DeleteEnrollment(id string) error {
 	}
 
 	return nil
+}
+
+func (u *EnrollmentRepo) GetEnrolledUsersByCourseID(courseID string) ([]model.Users, error) {
+	query := `
+		SELECT u.user_id, u.name, u.email, u.birthday
+		FROM users u
+		JOIN enrollments e ON u.user_id = e.user_id
+		WHERE e.course_id = $1 AND e.deleted_at = 0`
+
+	rows, err := u.db.Query(query, courseID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var users []model.Users
+
+	for rows.Next() {
+		var user model.Users
+		err := rows.Scan(&user.UserId, &user.Name, &user.Email, &user.Birthday)
+		if err != nil {
+			return nil, err
+		}
+		users = append(users, user)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return users, nil
 }

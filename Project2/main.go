@@ -4,8 +4,6 @@ import (
 	"log"
 	"module/handler"
 	"module/storage/postgres"
-
-	"github.com/gin-gonic/gin"
 )
 
 func main() {
@@ -16,13 +14,12 @@ func main() {
 	defer db.Close()
 
 	userRepo := postgres.NewUserRepo(db)
+	courseRepo := postgres.NewCourseRepo(db)
+	lessonRepo := postgres.NewLessonRepo(db)
+	enrollmentRepo := postgres.NewEnrollmentRepo(db)
 
-	h := handler.NewHandler(*userRepo)
+	h := handler.Handler{User: *userRepo, Course: *courseRepo, Lesson: *lessonRepo, Enrollment: *enrollmentRepo}
 
-	r := gin.Default()
-	h.RegisterRoutes(r)
+	handler.Router(&h)
 
-	if err := r.Run(":8080"); err != nil {
-		log.Fatal("Error starting server:", err)
-	}
 }

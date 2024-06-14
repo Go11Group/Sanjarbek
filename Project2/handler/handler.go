@@ -6,55 +6,60 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// repositorylarni oz ichiga olgan handler structi
 type Handler struct {
-	User   postgres.UserRepo
-	Course postgres.CourseRepo
-	Lesson postgres.LessonRepo
+	User       postgres.UserRepo
+	Course     postgres.CourseRepo
+	Lesson     postgres.LessonRepo
 	Enrollment postgres.EnrollmentRepo
 }
 
-func NewHandler(userRepo postgres.UserRepo) *Handler {
-	return &Handler{User: userRepo}
-}
+// turli hil api larni guruhlab ishga tushurich
+func Router(h *Handler) *gin.Engine {
+	r := gin.Default()
 
-func (h *Handler) RegisterRoutes(r *gin.Engine) {
-
+	// user uchun userlar
 	users := r.Group("/users")
 	users.POST("/create", h.CreateUser)
-	users.GET("/get", h.GetUser)
-	users.GET("/get/:id", h.GetUserId)
-	users.GET("/c", h.GetAllUsers)
+	users.GET("/get/:id", h.GetUserByID)
+	users.GET("/", h.GetAllUsers)
+	users.GET("/get", h.GetAllUsersFiltered)
 	users.PUT("/update/:id", h.UpdateUser)
 	users.DELETE("/delete/:id", h.DeleteUser)
+	users.GET("/GetNameEmail", h.SearchUsers)
 
-
-
+	// course uchun userlar
 	courses := r.Group("/courses")
 	courses.POST("/create", h.CreateCourse)
-	courses.POST("/get", h.GetCourse)
-	courses.POST("/get/:id", h.GetCourseId)
-	courses.POST("/c", h.GetAllCourses)
-	courses.POST("/updata/:id", h.UpdateCourse)
-	courses.POST("/delete/:id", h.DeleteCourse)
+	courses.GET("/get/:id", h.GetCourseByID)
+	courses.GET("/", h.GetAllCourses)
+	courses.GET("/get", h.GetAllCoursesFiltered)
+	courses.PUT("/update/:id", h.UpdateCourse)
+	courses.DELETE("/delete/:id", h.DeleteCourse)
+	courses.GET("/getPopularCourses", h.GetMostPopularCourses)
 
-
-
+	// lesson uchun userlar
 	lessons := r.Group("/lessons")
-	lessons.POST("/create", h.Createlesson)
-	lessons.POST("/get", h.Getlesson)
-	lessons.POST("/get/:id", h.GetlessonId)
-	lessons.POST("/c", h.GetAlllessons)
-	lessons.POST("/updata/:id", h.Updatelesson)
-	lessons.POST("/delete/:id", h.Deletelesson)
+	lessons.POST("/create", h.CreateLesson)
+	lessons.GET("/get/:id", h.GetLessonByID)
+	lessons.GET("/", h.GetAllLessons)
+	lessons.GET("/get", h.GetAllLessonsFiltered)
+	lessons.PUT("/update/:id", h.UpdateLesson)
+	lessons.DELETE("/delete/:id", h.DeleteLesson)
+	lessons.GET("/getCourseId/:course_id", h.GetLessonsByCourseID)
 
+	// enrollment uchun userlar
+	enrollments := r.Group("/enrollments")
+	enrollments.POST("/create", h.CreateEnrollment)
+	enrollments.GET("/get/:id", h.GetEnrollmentByID)
+	enrollments.GET("/", h.GetAllEnrollments)
+	enrollments.GET("/get", h.GetAllEnrollmentsFiltered)
+	enrollments.PUT("/update/:id", h.UpdateEnrollment)
+	enrollments.DELETE("/delete/:id", h.DeleteEnrollment)
+	enrollments.GET("/getByCourseId/:course_id", h.GetEnrolledUsersByCourseID)
 
+	// serverni 8080 portida ishga tushurish
+	r.Run(":8080")
 
-	enrollment := r.Group("/lessons")
-	enrollment.POST("/create", h.Createlesson)
-	enrollment.POST("/get", h.Getlesson)
-	enrollment.POST("/get/:id", h.GetlessonId)
-	enrollment.POST("/c", h.GetAlllessons)
-	enrollment.POST("/updata/:id", h.Updatelesson)
-	enrollment.POST("/delete/:id", h.Deletelesson)
-
+	return r
 }

@@ -6,6 +6,9 @@ import (
 	"fmt"
 	"module/model"
 	"module/replace"
+	"strings"
+
+	"github.com/google/uuid"
 )
 
 type CourseRepo struct {
@@ -21,16 +24,16 @@ func (u *CourseRepo) CreateCourse(course model.Courses) (*model.Courses, error) 
 	if err != nil {
 		return nil, err
 	}
+	id := uuid.NewString()
 
 	query := `
 		INSERT INTO courses(
 			course_id,
 			title,
-			description,
-			created_at)
-		VALUES($1, $2, $3, $4)`
+			description)
+		VALUES($1, $2, $3)`
 
-	_, err = tr.Exec(query, course.CourseId, course.Title, course.Description, course.CreatedAt)
+	_, err = tr.Exec(query, id, course.Title, course.Description)
 	if err != nil {
 		tr.Rollback()
 		return nil, fmt.Errorf("could not create course: %v", err)
@@ -40,6 +43,7 @@ func (u *CourseRepo) CreateCourse(course model.Courses) (*model.Courses, error) 
 	if err != nil {
 		return nil, err
 	}
+	course.CourseId = id
 
 	return &course, nil
 }
@@ -48,9 +52,9 @@ func (u *CourseRepo) GetCourseByID(id string) (*model.Courses, error) {
 	var course model.Courses
 
 	err := u.db.QueryRow(`
-		SELECT course_id, title, description, created_at 
+		SELECT course_id, title, description
 		FROM courses 
-		WHERE course_id = $1 AND deleted_at = 0`, id).Scan(&course.CourseId, &course.Title, &course.Description, &course.CreatedAt)
+		WHERE course_id = $1 AND deleted_at = 0`, id).Scan(&course.CourseId, &course.Title, &course.Description)
 
 	if err != nil {
 		return nil, err
@@ -59,8 +63,8 @@ func (u *CourseRepo) GetCourseByID(id string) (*model.Courses, error) {
 	return &course, nil
 }
 
-func (u *CourseRepo) GetAllCourses() (*[]model.Courses, error) {
-	query := `SELECT course_id, title, description, created_at 
+func (u *CourseRepo) GetAllCourses() ([]model.Courses, error) {
+	query := `SELECT course_id, title, description
 	          FROM courses 
 	          WHERE deleted_at = 0`
 
@@ -74,7 +78,7 @@ func (u *CourseRepo) GetAllCourses() (*[]model.Courses, error) {
 
 	for rows.Next() {
 		course := model.Courses{}
-		err := rows.Scan(&course.CourseId, &course.Title, &course.Description, &course.CreatedAt)
+		err := rows.Scan(&course.CourseId, &course.Title, &course.Description)
 		if err != nil {
 			return nil, err
 		}
@@ -85,7 +89,7 @@ func (u *CourseRepo) GetAllCourses() (*[]model.Courses, error) {
 		return nil, err
 	}
 
-	return &courses, nil
+	return courses, nil
 }
 
 func (u *CourseRepo) GetAllCoursesFiltered(f model.CourseGetAll) ([]model.Courses, error) {
@@ -95,13 +99,18 @@ func (u *CourseRepo) GetAllCoursesFiltered(f model.CourseGetAll) ([]model.Course
 		filter string
 	)
 
-	query := `SELECT course_id, title, description, created_at 
+	query := `SELECT course_id, title, description
 	          FROM courses 
-	          WHERE deleted_at = 0 `
+	          WHERE deleted_at = 0`
 
-	if len(f.Title) > 0 {
+	if f.Title != "" {
 		params["title"] = f.Title
 		filter += " AND title = :title "
+	}
+
+	if f.Description != "" {
+		params["description"] = f.Description
+		filter += " AND description = :description "
 	}
 
 	if f.Offset > 0 {
@@ -126,7 +135,7 @@ func (u *CourseRepo) GetAllCoursesFiltered(f model.CourseGetAll) ([]model.Course
 	var courses []model.Courses
 	for rows.Next() {
 		var course model.Courses
-		err := rows.Scan(&course.CourseId, &course.Title, &course.Description, &course.CreatedAt)
+		err := rows.Scan(&course.CourseId, &course.Title, &course.Description)
 		if err != nil {
 			return nil, err
 		}
@@ -141,36 +150,70 @@ func (u *CourseRepo) GetAllCoursesFiltered(f model.CourseGetAll) ([]model.Course
 }
 
 func (u *CourseRepo) UpdateCourse(course model.Courses) (*model.Courses, error) {
+	// First, check if the course exists
+	var checkCourse model.Courses
+	err := u.db.QueryRow(`
+		SELECT course_id, title, description
+		FROM courses 
+		WHERE course_id = $1 AND deleted_at = 0`, course.CourseId).Scan(&checkCourse.CourseId, &checkCourse.Title, &checkCourse.Description)
+	
+	if err != nil {
+		return nil, err
+	}
+
+	var fields []string
+	var args []interface{}
+	argID := 1
+
+	if course.Title != "" {
+		fields = append(fields, fmt.Sprintf("title = $%d", argID))
+		args = append(args, course.Title)
+		argID++
+	}
+	if course.Description != "" {
+		fields = append(fields, fmt.Sprintf("description = $%d", argID))
+		args = append(args, course.Description)
+		argID++
+	}
+
+	// If nothing is to be updated, return an error
+	if len(fields) == 0 {
+		return nil, errors.New("nothing to update")
+	}
+
+	query := fmt.Sprintf(`
+		UPDATE courses SET
+			%s,
+			updated_at = CURRENT_TIMESTAMP
+		WHERE course_id = $%d AND deleted_at = 0`, 
+		strings.Join(fields, ", "),
+		argID)
+
+	args = append(args, course.CourseId)
+
 	tr, err := u.db.Begin()
 	if err != nil {
 		return nil, err
 	}
-	defer tr.Commit()
 
-	res, err := tr.Exec(`
-		UPDATE courses SET
-			title = $2,
-			description = $3,
-			updated_at = CURRENT_TIMESTAMP
-		WHERE course_id = $1 AND deleted_at = 0`, course.CourseId, course.Title, course.Description)
-	
+	_, err = tr.Exec(query, args...)
 	if err != nil {
 		tr.Rollback()
 		return nil, err
 	}
 
-	n, err := res.RowsAffected()
+	err = tr.Commit()
 	if err != nil {
-		tr.Rollback()
 		return nil, err
 	}
 
-	if n == 0 {
-		tr.Rollback()
-		return nil, errors.New("this id is not available")
+	// Return the updated course
+	updatedCourse, err := u.GetCourseByID(course.CourseId)
+	if err != nil {
+		return nil, err
 	}
 
-	return &course, nil
+	return updatedCourse, nil
 }
 
 func (u *CourseRepo) DeleteCourse(id string) error {
@@ -196,3 +239,56 @@ func (u *CourseRepo) DeleteCourse(id string) error {
 
 	return nil
 }
+
+func (u *CourseRepo) GetMostPopularCourses(startDate, endDate string) ([]model.CoursePopularity, error) {
+	query := `
+		SELECT c.course_id, c.title, c.description, c.created_at, COUNT(e.user_id) AS enrollment_count
+		FROM courses c
+		JOIN enrollments e ON c.course_id = e.course_id
+		WHERE e.enrollment_date >= $1 AND e.enrollment_date <= $2 AND e.deleted_at = 0
+		GROUP BY c.course_id, c.title, c.description, c.created_at
+		ORDER BY enrollment_count DESC`
+
+	rows, err := u.db.Query(query, startDate, endDate)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var courses []model.CoursePopularity
+
+	for rows.Next() {
+		course := model.CoursePopularity{}
+		err := rows.Scan(&course.CourseId, &course.Title, &course.Description, &course.CreatedAt, &course.EnrollmentCount)
+		if err != nil {
+			return nil, err
+		}
+		courses = append(courses, course)
+	}
+
+	if err = rows.Err(); err != nil {
+		return nil, err
+	}
+
+	return courses, nil
+}
+
+
+func (h *CourseRepo) GetCoursesbyUser(id string) ([]model.GetCoursesbyUsers, error) {
+	rows, err := h.db.Query("select u.id, c.id,c.title,c.Description from users as u join enrollments as e on u.id=e.user_id join courses as c on c.id=e.course_id where u.id=$1", id)
+	if err != nil {
+	  panic(err)
+	}
+  
+	var p []model.GetCoursesbyUsers
+	var get model.GetCoursesbyUsers
+	for rows.Next() {
+	  err := rows.Scan(&get.Id, &get.Course.Id, &get.Course.Title, &get.Course.Description)
+	  if err != nil {
+		return nil, err
+	  }
+	  p = append(p, get)
+	}
+	return p, nil
+  }
+  
