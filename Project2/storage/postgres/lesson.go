@@ -42,7 +42,6 @@ func (u *LessonRepo) CreateLesson(lesson model.Lessons) (*model.Lessons, error) 
 	_, err = tr.Exec(query, id, lesson.CourseId, lesson.Title, lesson.Content)
 	if err != nil {
 		tr.Rollback()
-		log.Printf("Could not create lesson: %v", err)
 		return nil, fmt.Errorf("could not create lesson: %v", err)
 	}
 

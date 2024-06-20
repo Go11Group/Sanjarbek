@@ -1,0 +1,2 @@
+DELETE FROM cars
+WHERE id IN ('f7f6e19e-2e7a-4b69-83c4-86b980dc0651', '35c1b4f7-3a03-4464-8c7b-7dd7f78e590b', 'fa1f8b01-7a64-4b93-8c22-17d5d8ce1bf6');

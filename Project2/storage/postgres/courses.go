@@ -154,9 +154,9 @@ func (u *CourseRepo) UpdateCourse(course model.Courses) (*model.Courses, error) 
 	var checkCourse model.Courses
 	err := u.db.QueryRow(`
 		SELECT course_id, title, description
-		FROM courses 
+		FROM courses
 		WHERE course_id = $1 AND deleted_at = 0`, course.CourseId).Scan(&checkCourse.CourseId, &checkCourse.Title, &checkCourse.Description)
-	
+	fmt.Println(err, checkCourse)
 	if err != nil {
 		return nil, err
 	}
