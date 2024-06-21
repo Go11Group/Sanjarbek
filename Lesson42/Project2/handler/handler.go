@@ -1,7 +1,7 @@
 package handler
 
 import (
-	"module/storage/postgres"
+	"module/Project2/storage/postgres"
 
 	"github.com/gin-gonic/gin"
 )

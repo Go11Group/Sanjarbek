@@ -2,8 +2,8 @@ package main
 
 import (
 	"log"
-	"module/handler"
-	"module/storage/postgres"
+	"module/Project2/handler"
+	"module/Project2/storage/postgres"
 )
 
 func main() {

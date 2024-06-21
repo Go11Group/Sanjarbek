@@ -2,7 +2,7 @@ package handler
 
 import (
 	"fmt"
-	"module/model"
+	"module/Project2/model"
 	"net/http"
 
 	"github.com/gin-gonic/gin"

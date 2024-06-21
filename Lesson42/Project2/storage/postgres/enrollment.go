@@ -3,8 +3,8 @@ package postgres
 import (
 	"database/sql"
 	"fmt"
-	"module/model"
-	"module/replace"
+	"module/Project2/model"
+	"module/Project2/replace"
 	"strings"
 	"time"
 

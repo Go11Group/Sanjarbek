@@ -5,8 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"module/model"
-	"module/replace"
+	"module/Project2/model"
+	"module/Project2/replace"
 	"strings"
 
 	"github.com/google/uuid"
