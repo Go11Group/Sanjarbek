@@ -3,7 +3,7 @@ package postgres
 import (
 	"database/sql"
 	"fmt"
-	"metro-service/models"
+	"metro_service/models"
 )
 
 type AdditionalRepo struct {
