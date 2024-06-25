@@ -1,30 +1,44 @@
 package main
 
 import (
-	"fmt"
+	"context"
 	"log"
+	pb "translate_service/server"
 	"net"
+	"strings"
 
-	"translate_service/server"
 	"google.golang.org/grpc"
 )
 
-func main() {
+type server struct {
+	pb.UnimplementedTranslateServiceServer
+}
 
-	fmt.Println("Go gRPC Beginners Tutorial!")
+var allwords = map[string]string{
+	"salom":"Hello",
+	"dunyo":"World",
+	"qaleysan":"What's up",
+	"kompyuter":"Laptop",
+	"telephone":"cellphone",
+	"naushnik":"earphone"}
 
-	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", 9000))
-	if err != nil {
-		log.Fatalf("failed to listen: %v", err)
+func (s *server) GiveTranslation(ctx context.Context, req *pb.Massage) (*pb.Answer, error) {
+	res := req.Words
+	for i, v := range res {
+		res[i] = allwords[strings.ToLower(v)]
 	}
+	return &pb.Answer{Words: res}, nil
+}
 
-	s := chat.Server{}
-
-	grpcServer := grpc.NewServer()
-
-	chat.RegisterChatServiceServer(grpcServer, &s)
-
-	if err := grpcServer.Serve(lis); err != nil {
-		log.Fatalf("failed to serve: %s", err)
+func main() {
+	lis, err := net.Listen("tcp", ":50051")
+	if err != nil {
+		log.Fatal(err)
+	}
+	s := grpc.NewServer()
+	pb.RegisterTranslateServiceServer(s, &server{})
+	log.Printf("Server listening at %v", lis.Addr())
+	if err := s.Serve(lis); err != nil {
+		log.Fatal(err)
 	}
 }

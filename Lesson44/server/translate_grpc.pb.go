@@ -26,7 +26,7 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type TranslateServiceClient interface {
-	GiveTranslation(ctx context.Context, in *Massage, opts ...grpc.CallOption) (*Massage, error)
+	GiveTranslation(ctx context.Context, in *Massage, opts ...grpc.CallOption) (*Answer, error)
 }
 
 type translateServiceClient struct {
@@ -37,9 +37,9 @@ func NewTranslateServiceClient(cc grpc.ClientConnInterface) TranslateServiceClie
 	return &translateServiceClient{cc}
 }
 
-func (c *translateServiceClient) GiveTranslation(ctx context.Context, in *Massage, opts ...grpc.CallOption) (*Massage, error) {
+func (c *translateServiceClient) GiveTranslation(ctx context.Context, in *Massage, opts ...grpc.CallOption) (*Answer, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(Massage)
+	out := new(Answer)
 	err := c.cc.Invoke(ctx, TranslateService_GiveTranslation_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -51,7 +51,7 @@ func (c *translateServiceClient) GiveTranslation(ctx context.Context, in *Massag
 // All implementations must embed UnimplementedTranslateServiceServer
 // for forward compatibility
 type TranslateServiceServer interface {
-	GiveTranslation(context.Context, *Massage) (*Massage, error)
+	GiveTranslation(context.Context, *Massage) (*Answer, error)
 	mustEmbedUnimplementedTranslateServiceServer()
 }
 
@@ -59,7 +59,7 @@ type TranslateServiceServer interface {
 type UnimplementedTranslateServiceServer struct {
 }
 
-func (UnimplementedTranslateServiceServer) GiveTranslation(context.Context, *Massage) (*Massage, error) {
+func (UnimplementedTranslateServiceServer) GiveTranslation(context.Context, *Massage) (*Answer, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GiveTranslation not implemented")
 }
 func (UnimplementedTranslateServiceServer) mustEmbedUnimplementedTranslateServiceServer() {}

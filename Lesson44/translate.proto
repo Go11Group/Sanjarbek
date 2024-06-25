@@ -8,6 +8,10 @@ message Massage {
     repeated string words = 1;
 }
 
+message Answer {
+    repeated string words = 1;
+}
+
 service TranslateService {
-    rpc GiveTranslation(Massage) returns (Massage) {}
+    rpc GiveTranslation(Massage) returns (Answer) {}
 }
