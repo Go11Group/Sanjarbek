@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+package translateService;
+
+option go_package = "translateService/server";
+
+message Massage {
+    repeated string words = 1;
+}
+
+service TranslateService {
+    rpc GiveTranslation(Massage) returns (Massage) {}
+}
