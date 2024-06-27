@@ -28,9 +28,9 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type TransportServiceClient interface {
-	GetBusSchedule(ctx context.Context, in *Bus, opts ...grpc.CallOption) (*Schedule, error)
-	TrackBusLocation(ctx context.Context, in *Bus, opts ...grpc.CallOption) (*Location, error)
-	ReportTrafficJam(ctx context.Context, in *Bus, opts ...grpc.CallOption) (*Traffic, error)
+	GetBusSchedule(ctx context.Context, in *Transport, opts ...grpc.CallOption) (*Schedule, error)
+	TrackBusLocation(ctx context.Context, in *Transport, opts ...grpc.CallOption) (*Location, error)
+	ReportTrafficJam(ctx context.Context, in *Transport, opts ...grpc.CallOption) (*Traffic, error)
 }
 
 type transportServiceClient struct {
@@ -41,7 +41,7 @@ func NewTransportServiceClient(cc grpc.ClientConnInterface) TransportServiceClie
 	return &transportServiceClient{cc}
 }
 
-func (c *transportServiceClient) GetBusSchedule(ctx context.Context, in *Bus, opts ...grpc.CallOption) (*Schedule, error) {
+func (c *transportServiceClient) GetBusSchedule(ctx context.Context, in *Transport, opts ...grpc.CallOption) (*Schedule, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(Schedule)
 	err := c.cc.Invoke(ctx, TransportService_GetBusSchedule_FullMethodName, in, out, cOpts...)
@@ -51,7 +51,7 @@ func (c *transportServiceClient) GetBusSchedule(ctx context.Context, in *Bus, op
 	return out, nil
 }
 
-func (c *transportServiceClient) TrackBusLocation(ctx context.Context, in *Bus, opts ...grpc.CallOption) (*Location, error) {
+func (c *transportServiceClient) TrackBusLocation(ctx context.Context, in *Transport, opts ...grpc.CallOption) (*Location, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(Location)
 	err := c.cc.Invoke(ctx, TransportService_TrackBusLocation_FullMethodName, in, out, cOpts...)
@@ -61,7 +61,7 @@ func (c *transportServiceClient) TrackBusLocation(ctx context.Context, in *Bus, 
 	return out, nil
 }
 
-func (c *transportServiceClient) ReportTrafficJam(ctx context.Context, in *Bus, opts ...grpc.CallOption) (*Traffic, error) {
+func (c *transportServiceClient) ReportTrafficJam(ctx context.Context, in *Transport, opts ...grpc.CallOption) (*Traffic, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	out := new(Traffic)
 	err := c.cc.Invoke(ctx, TransportService_ReportTrafficJam_FullMethodName, in, out, cOpts...)
@@ -75,9 +75,9 @@ func (c *transportServiceClient) ReportTrafficJam(ctx context.Context, in *Bus, 
 // All implementations must embed UnimplementedTransportServiceServer
 // for forward compatibility
 type TransportServiceServer interface {
-	GetBusSchedule(context.Context, *Bus) (*Schedule, error)
-	TrackBusLocation(context.Context, *Bus) (*Location, error)
-	ReportTrafficJam(context.Context, *Bus) (*Traffic, error)
+	GetBusSchedule(context.Context, *Transport) (*Schedule, error)
+	TrackBusLocation(context.Context, *Transport) (*Location, error)
+	ReportTrafficJam(context.Context, *Transport) (*Traffic, error)
 	mustEmbedUnimplementedTransportServiceServer()
 }
 
@@ -85,13 +85,13 @@ type TransportServiceServer interface {
 type UnimplementedTransportServiceServer struct {
 }
 
-func (UnimplementedTransportServiceServer) GetBusSchedule(context.Context, *Bus) (*Schedule, error) {
+func (UnimplementedTransportServiceServer) GetBusSchedule(context.Context, *Transport) (*Schedule, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetBusSchedule not implemented")
 }
-func (UnimplementedTransportServiceServer) TrackBusLocation(context.Context, *Bus) (*Location, error) {
+func (UnimplementedTransportServiceServer) TrackBusLocation(context.Context, *Transport) (*Location, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method TrackBusLocation not implemented")
 }
-func (UnimplementedTransportServiceServer) ReportTrafficJam(context.Context, *Bus) (*Traffic, error) {
+func (UnimplementedTransportServiceServer) ReportTrafficJam(context.Context, *Transport) (*Traffic, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ReportTrafficJam not implemented")
 }
 func (UnimplementedTransportServiceServer) mustEmbedUnimplementedTransportServiceServer() {}
@@ -108,7 +108,7 @@ func RegisterTransportServiceServer(s grpc.ServiceRegistrar, srv TransportServic
 }
 
 func _TransportService_GetBusSchedule_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(Bus)
+	in := new(Transport)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -120,13 +120,13 @@ func _TransportService_GetBusSchedule_Handler(srv interface{}, ctx context.Conte
 		FullMethod: TransportService_GetBusSchedule_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(TransportServiceServer).GetBusSchedule(ctx, req.(*Bus))
+		return srv.(TransportServiceServer).GetBusSchedule(ctx, req.(*Transport))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
 func _TransportService_TrackBusLocation_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(Bus)
+	in := new(Transport)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -138,13 +138,13 @@ func _TransportService_TrackBusLocation_Handler(srv interface{}, ctx context.Con
 		FullMethod: TransportService_TrackBusLocation_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(TransportServiceServer).TrackBusLocation(ctx, req.(*Bus))
+		return srv.(TransportServiceServer).TrackBusLocation(ctx, req.(*Transport))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
 func _TransportService_ReportTrafficJam_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(Bus)
+	in := new(Transport)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -156,7 +156,7 @@ func _TransportService_ReportTrafficJam_Handler(srv interface{}, ctx context.Con
 		FullMethod: TransportService_ReportTrafficJam_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(TransportServiceServer).ReportTrafficJam(ctx, req.(*Bus))
+		return srv.(TransportServiceServer).ReportTrafficJam(ctx, req.(*Transport))
 	}
 	return interceptor(ctx, in, info, handler)
 }

@@ -6,12 +6,17 @@ package weatherService;
 
 service WeatherService {
     rpc GetCurrentWeather(Place) returns (CurrentWeatherResponse) {}
-    rpc GetWeatherForecast(Place) returns (WeatherForecastResponse) {}
+    rpc GetWeatherForecast(Forecast) returns (WeatherForecastResponse) {}
     rpc ReportWeatherCondition(Place) returns (WeatherConditionResponse) {}
 }
 
 message Place {
     string name = 1;
+}
+
+message Forecast {
+    string name = 1;
+    int32 day   = 2;
 }
 
 message CurrentWeatherResponse {
@@ -24,13 +29,15 @@ message WeatherForecastResponse {
     repeated int32 temperature = 1;
     repeated float humidity    = 2;
     repeated int32 windSpeed   = 3;
+    int32 date                 = 4;
 }
 
 message WeatherConditionResponse{
-    Place place = 1;
+    Place place       = 1;
     int32 temperature = 2;
-    float humidity = 3;
-    int32 windSpeed = 4;
-    string condition = 5;
+    float humidity    = 3;
+    int32 windSpeed   = 4;
+    string condition  = 5;
+    int32 date        = 6;
 }
 
