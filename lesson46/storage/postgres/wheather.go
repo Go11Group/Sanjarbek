@@ -49,10 +49,10 @@ func (w *WeatherRepo) GetWeatherForecast(p *pb.Forecast) (*pb.WeatherForecastRes
 	return &forecastW, nil
 }
 
-func (w *WeatherRepo) WeatherConditionResponse(p *pb.Place) (*pb.WeatherConditionResponse, error) {
+func (w *WeatherRepo) ReportWeatherCondition(p *pb.Place) (*pb.WeatherConditionResponse, error) {
 	conditionW := pb.WeatherConditionResponse{}
 
-	query := `select temperature, humidity, wind_speed, condition from weather_conditions where name = $1 and date = CURRENT_DATE`
+	query := `select temperature, humidity, wind_speed, condition from weather where name = $1 and date = CURRENT_DATE`
 	err := w.db.QueryRow(query, p.Name).Scan(&conditionW.Temperature, &conditionW.Humidity, &conditionW.WindSpeed, &conditionW.Condition)
 
 	if err != nil {
