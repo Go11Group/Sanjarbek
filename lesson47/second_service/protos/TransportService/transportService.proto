@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+option go_package = "genproto/transportService";
+
+package transportService;
+
+service TransportService {
+    rpc GetBusSchedule (Transport) returns (Schedule) {}
+    rpc TrackBusLocation (Transport) returns (Location) {}
+    rpc ReportTrafficJam (Transport) returns (Traffic) {}
+}
+
+message Transport {
+    int32 number = 2;
+}
+
+message Schedule {
+    repeated string stations = 1;
+}
+
+message Location {
+    string station = 1;
+}
+
+message Traffic {
+    bool is_full = 1;
+}
