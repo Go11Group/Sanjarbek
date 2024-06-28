@@ -30,7 +30,7 @@ func main(){
 
 	defer cancel()
 	// 1-chi function transport
-	rGetBus := transportService.Transport{Number: 12}
+	rGetBus := transportService.Transport{Number: 2}
 	resGetBusSch, err := t.GetBusSchedule(ctx, &rGetBus)
 	if err != nil {
 		log.Println(err)
