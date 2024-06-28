@@ -8,7 +8,6 @@ CREATE TABLE IF NOT EXISTS weather (
 );
 
 CREATE TABLE IF NOT EXISTS transport (
-    name VARCHAR(255) NOT NULL,
     number INTEGER NOT NULL,
     stations TEXT[],
     current_station VARCHAR(255),

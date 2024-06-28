@@ -16,7 +16,7 @@ message Place {
 
 message Forecast {
     string name = 1;
-    int32 day   = 2;
+    string day  = 2;
 }
 
 message CurrentWeatherResponse {
