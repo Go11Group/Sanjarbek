@@ -1,12 +1,13 @@
-package handler
+package api
 
 import (
+	"module/service/api/handler"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
 )
 
-func CreateServer(handler *Handler) *http.Server {
+func CreateServer(handler *handler.Handler) *http.Server {
 	router := gin.Default()
 
 	usersRoute := router.Group("/users")
@@ -18,7 +19,7 @@ func CreateServer(handler *Handler) *http.Server {
 	usersRoute.PUT("/:id/update", handler.UpdateUsers)
 	usersRoute.DELETE("/:id/delete", handler.DeleteUser)
 
-	coursesRoute :=router.Group("/courses")
+	coursesRoute := router.Group("/courses")
 
 	coursesRoute.GET("/all", handler.GetCourses)
 	coursesRoute.GET("/:id", handler.GetCourses)
@@ -44,6 +45,6 @@ func CreateServer(handler *Handler) *http.Server {
 	lessonsRoute.PUT("/:id/update", handler.UpdateLesson)
 	lessonsRoute.DELETE("/:id/delete", handler.DeleteLesson)
 
-	return &http.Server{Addr:":8081", Handler: router}
+	return &http.Server{Addr: ":8081", Handler: router}
 
 }
