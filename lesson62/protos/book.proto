@@ -1,0 +1,78 @@
+syntax = "proto3";
+
+option go_package = "/genproto";
+
+service BookService {
+    rpc CreateBook (CreateBookRequest) returns (CreateBookResponse);
+    rpc GetBook (GetBookRequest) returns (GetBookResponse);
+    rpc UpdateBook (UpdateBookRequest) returns (UpdateBookResponse);
+    rpc DeleteBook (DeleteBookRequest) returns (DeleteBookResponse);
+  
+    rpc BuyBook (BuyBookRequest) returns (BuyBookResponse);
+    rpc SellBook (SellBookRequest) returns (SellBookResponse);
+  }
+
+message Book {
+  string id = 1;
+  string title = 2;
+  string author = 3;
+  int32 quantity = 4;
+  double price = 5;
+}
+
+message CreateBookRequest {
+  string title = 1;
+  string author = 2;
+  int32 quantity = 3;
+  double price = 4;
+}
+
+message CreateBookResponse {
+  string message = 1;
+}
+
+message GetBookRequest {
+  string id = 1;
+}
+
+message GetBookResponse {
+  Book book = 1;
+}
+
+message UpdateBookRequest {
+  string id = 1;
+  string title = 2;
+  string author = 3;
+  int32 quantity = 4;
+  double price = 5;
+}
+
+message UpdateBookResponse {
+  string message = 1;
+}
+
+message DeleteBookRequest {
+  string id = 1;
+}
+
+message DeleteBookResponse {
+  string message = 1;
+}
+
+message BuyBookRequest {
+  string id = 1;
+  int32 quantity = 2;
+}
+
+message BuyBookResponse {
+  string message = 1;
+}
+
+message SellBookRequest {
+  string id = 1;
+  int32 quantity = 2;
+}
+
+message SellBookResponse {
+  string message = 1;
+}

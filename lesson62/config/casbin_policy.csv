@@ -1,0 +1,6 @@
+p, admin, /api/v1/books, POST
+p, admin, /api/v1/books, GET
+p, user, /api/v1/books, GET
+
+g, alice, admin
+g, bob, user
