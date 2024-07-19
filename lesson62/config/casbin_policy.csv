@@ -4,3 +4,13 @@ p, user, /api/v1/books, GET
 
 g, alice, admin
 g, bob, user
+
+p, admin, books, create
+p, admin, books, view
+p, admin, books, update
+p, admin, books, delete
+p, admin, books, buy
+p, admin, books, sell
+p, user, books, view
+p, user, books, buy
+p, user, books, sell

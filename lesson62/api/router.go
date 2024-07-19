@@ -1,28 +1,19 @@
 package api
 
 import (
-	"casbin/api/handler"
-	"casbin/api/middleware"
-	"github.com/casbin/casbin/v2"
 	"github.com/gin-gonic/gin"
-	swaggerFiles "github.com/swaggo/files"
-	ginSwagger "github.com/swaggo/gin-swagger"
+	"casbin/api/handler" // Adjust the import path accordingly
 )
 
-func Router(redisHandler *handler.RedisHandler, enforcer *casbin.Enforcer) *gin.Engine {
-	router := gin.Default()
+func Router(redisHandler *handler.RedisHandler) *gin.Engine {
+	r := gin.Default()
 
-	router.Use(middleware.CasbinMiddleware(enforcer))
+	r.POST("/api/book", redisHandler.CreateBook)
+	r.GET("/api/book/:id", redisHandler.GetBook)
+	r.PUT("/api/book", redisHandler.UpdateBook)
+	r.DELETE("/api/book/:id", redisHandler.DeleteBook)
+	r.POST("/api/book/buy", redisHandler.BuyBook)
+	r.POST("/api/book/sell", redisHandler.SellBook)
 
-	router.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
-
-	books := router.Group("/api/v1/books")
-	{
-		books.POST("", redisHandler.CreateBook)
-		books.GET("/:id", redisHandler.GetBook)
-		books.PUT("/:id", redisHandler.UpdateBook)
-		books.DELETE("/:id", redisHandler.DeleteBook)
-	}
-
-	return router
+	return r
 }
