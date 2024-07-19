@@ -9,13 +9,11 @@ import (
 )
 
 func main() {
-	// Initialize Redis client
 	redisClient := redis.NewClient(&redis.Options{
 		Addr: "localhost:6379",
 		DB:   0,
 	})
 
-	// Initialize Casbin enforcer
 	enforcer, err := casbin.NewEnforcer("config/casbin_model.conf", "config/casbin_policy.csv")
 	if err != nil {
 		log.Fatalf("Failed to create Casbin enforcer: %v", err)

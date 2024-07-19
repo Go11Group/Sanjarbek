@@ -2,7 +2,7 @@ package api
 
 import (
 	"github.com/gin-gonic/gin"
-	"casbin/api/handler" // Adjust the import path accordingly
+	"casbin/api/handler"
 )
 
 func Router(redisHandler *handler.RedisHandler) *gin.Engine {
